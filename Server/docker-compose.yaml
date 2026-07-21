@@ -1,0 +1,104 @@
+
+services:
+  java-server:
+    build:
+      context: .
+    container_name: system-monitor-server
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/system_monitor}
+      INFLUXDB_URL: ${INFLUXDB_URL:-http://influxdb:8086}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-monitor}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN:?Set INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-system-monitor}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET:-metrics}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+    ports:
+      - "80:8045"
+    networks:
+      - monitor-net
+
+  # PostgreSQL для метаданных и реляционных данных
+  postgres:
+    image: postgres:15-alpine
+    container_name: system-monitor-postgres
+    environment:
+      POSTGRES_DB: system_monitor
+      POSTGRES_USER: monitor
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - monitor-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monitor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # InfluxDB 2.x для временных рядов
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: system-monitor-influxdb
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD:?Set INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: system-monitor
+      DOCKER_INFLUXDB_INIT_BUCKET: metrics
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN:?Set INFLUXDB_TOKEN}
+      DOCKER_INFLUXDB_INIT_RETENTION: 30d
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+    networks:
+      - monitor-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Опционально: Графану для визуализации
+  grafana:
+    image: grafana/grafana:latest
+    container_name: system-monitor-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?Set GRAFANA_PASSWORD}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - monitor-net
+    restart: unless-stopped
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  influxdb_data:
+  influxdb_config:
+  grafana_data:
+
+networks:
+  monitor-net:
+    driver: bridge
