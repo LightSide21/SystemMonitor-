@@ -7,7 +7,7 @@ import java.util.List;
 public class SystemDataDto {
     private String computerId;
     private String computerName;
-    private String timestamp; // C# шлет DateTime, Jackson разберется
+    private String timestamp; // C# шлет DateTime
     private String configHash;
 
     private OsDto os;
@@ -17,7 +17,7 @@ public class SystemDataDto {
     private List<DiskDto> disks;
     private List<NetworkDto> networks;
 
-    // --- Inner Classes matching C# ---
+    
 
     @Data
     public static class OsDto {

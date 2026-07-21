@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import tools.jackson.databind.ObjectMapper;
 
 @SpringBootApplication
-@EnableScheduling // Добавить
+@EnableScheduling 
 public class SystemMonitorApplication {
     public static void main(String[] args) {
         SpringApplication.run(SystemMonitorApplication.class, args);

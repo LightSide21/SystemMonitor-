@@ -62,7 +62,7 @@ public class InfluxService {
                         .addTag("name", gpu.getName())
                         .addField("load", parseDouble(gpu.getUtilization()))
                         .addField("temp", parseDouble(gpu.getTemperature()))
-                        .addField("vmemory", parseDouble(gpu.getMemory())) // <-- СОХРАНЯЕМ ПАМЯТЬ
+                        .addField("vmemory", parseDouble(gpu.getMemory())) // 
                         .addField("power", parseDouble(gpu.getPower()))
                         .time(now, WritePrecision.S);
                 writeApi.writePoint(bucket, org, gpuPoint);

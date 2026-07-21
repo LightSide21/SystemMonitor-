@@ -132,7 +132,7 @@ public class DeviceManagementController {
 
     @PostMapping("/thresholds")
     public ResponseEntity<?> saveThresholds(@RequestParam String computerId, @RequestBody NotificationSettings newSettings) {
-        User user = getCurrentUser(); // Ваш метод получения текущего юзера
+        User user = getCurrentUser(); 
 
         NotificationSettings existing = settingsRepository.findByComputerId(computerId);
         if (existing == null) {

@@ -17,7 +17,7 @@ public class MetricsQueryController {
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> getDashboard(
             @RequestParam String computerId,
-            @RequestParam(defaultValue = "24h") String timeRange) { // Добавили параметр
+            @RequestParam(defaultValue = "24h") String timeRange) { 
         return ResponseEntity.ok(influxService.getComputerMetrics(computerId, timeRange));
     }
 }

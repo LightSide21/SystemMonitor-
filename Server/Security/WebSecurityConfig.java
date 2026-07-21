@@ -29,7 +29,7 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Не храним сессию
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // Вставляем наш фильтр
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); 
 
         return http.build();
     }

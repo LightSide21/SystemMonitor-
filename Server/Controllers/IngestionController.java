@@ -32,13 +32,13 @@ public class IngestionController {
         // 2. Проверяем, есть ли команды для этого ПК
         return commandRepository.findFirstByComputerIdAndStatusOrderByCreatedAtAsc(data.getComputerId(), "PENDING")
                 .map(cmd -> {
-                    // Команда найдена! Меняем статус на "Доставлено"
+                    // Команда найдена, Меняем статус на "Доставлено"
                     cmd.setStatus("DELIVERED");
                     commandRepository.save(cmd);
                     // Отправляем агенту
                     return ResponseEntity.ok(new CommandDto(cmd.getId(), cmd.getAction(), cmd.getPayload()));
                 })
-                .orElseGet(() -> ResponseEntity.ok().build()); // Если команд нет - возвращаем пустой 200 OK
+                .orElseGet(() -> ResponseEntity.ok().build()); // Если команд нет - возвращаем пустой
     }
 
     // 3. Эндпоинт, куда агент сообщит, что он выполнил команду
